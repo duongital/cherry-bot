@@ -1,8 +1,15 @@
 import { Hono, type Context } from "hono";
 import { cors } from "hono/cors";
+import { HTTPException } from "hono/http-exception";
 import { swaggerUI } from "@hono/swagger-ui";
 import { getAuth } from "./auth";
 import { openApiDocument } from "./openapi";
+import {
+  logError,
+  logInfo,
+  logWarn,
+  serializeError,
+} from "./lib/logger";
 import { requireSession } from "./lib/session";
 import itemsRoutes from "./routes/items";
 import tagsRoutes from "./routes/tags";
@@ -10,6 +17,88 @@ import healthRoutes from "./routes/health";
 import type { AppEnv } from "./types";
 
 const app = new Hono<AppEnv>();
+const REQUEST_ID_HEADER = "x-request-id";
+
+// Log one structured line per request. This runs before any other middleware so
+// every response, including CORS rejections and unhandled errors, is covered.
+app.use("*", async (c, next) => {
+  const startedAt = Date.now();
+  const requestId =
+    c.req.header("cf-ray") ??
+    c.req.header(REQUEST_ID_HEADER) ??
+    crypto.randomUUID();
+
+  c.set("requestId", requestId);
+  c.header(REQUEST_ID_HEADER, requestId);
+
+  try {
+    await next();
+  } finally {
+    let status = 500;
+    try {
+      status = c.res.status;
+    } catch {
+      // The response was never finalized (for example the handler threw before
+      // a response was created); the error handler logs the details.
+    }
+
+    const user = c.get("user");
+    const fields = {
+      requestId,
+      method: c.req.method,
+      path: c.req.path,
+      status,
+      durationMs: Date.now() - startedAt,
+      ...(user ? { userId: user.id } : {}),
+    };
+
+    if (status >= 500) {
+      logError("request.failed", fields);
+    } else if (status >= 400) {
+      logWarn("request.rejected", fields);
+    } else {
+      logInfo("request.completed", fields);
+    }
+  }
+});
+
+app.onError((error, c) => {
+  const requestId = c.get("requestId") ?? "unknown";
+  const fields = {
+    requestId,
+    method: c.req.method,
+    path: c.req.path,
+    error: serializeError(error),
+  };
+
+  if (error instanceof HTTPException) {
+    logWarn("request.http_exception", { ...fields, status: error.status });
+    return error.getResponse();
+  }
+
+  logError("request.unhandled_error", fields);
+  return c.json(
+    {
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "Internal server error",
+      },
+    },
+    500,
+  );
+});
+
+app.notFound((c) => {
+  logWarn("request.not_found", {
+    requestId: c.get("requestId") ?? "unknown",
+    method: c.req.method,
+    path: c.req.path,
+  });
+  return c.json(
+    { error: { code: "NOT_FOUND", message: "Route not found" } },
+    404,
+  );
+});
 
 /**
  * Browser requests must come from the web client. Native Expo requests have no

@@ -37,6 +37,7 @@ import {
   encodeCursor,
   formatZodError,
 } from "../lib/items";
+import { logError, logInfo } from "../lib/logger";
 import type { AppEnv } from "../types";
 
 const health = new Hono<AppEnv>();
@@ -175,19 +176,30 @@ health.post("/analyze", async (c) => {
     .returning();
 
   let form;
+  const analysisStartedAt = Date.now();
   try {
     form = await analyzeSymptoms(input.message, {
       apiKey,
       model: c.env.HEALTH_AGENT_MODEL,
     });
   } catch (error) {
+    logError("health.analyze.failed", {
+      requestId: c.get("requestId"),
+      userId,
+      conversationId: conversation.id,
+      durationMs: Date.now() - analysisStartedAt,
+      error:
+        error instanceof Error
+          ? { name: error.name, message: error.message }
+          : { message: String(error) },
+    });
+
     if (error instanceof HealthAnalysisError) {
       return c.json(
         { error: { code: error.code, message: error.message } },
         502,
       );
     }
-    console.error("Health analysis failed", error);
     return c.json(
       {
         error: {
@@ -198,6 +210,14 @@ health.post("/analyze", async (c) => {
       502,
     );
   }
+
+  logInfo("health.analyze.completed", {
+    requestId: c.get("requestId"),
+    userId,
+    conversationId: conversation.id,
+    durationMs: Date.now() - analysisStartedAt,
+    symptomCount: form.items.length,
+  });
 
   const assistantNow = new Date();
   const [assistantMessage] = await db

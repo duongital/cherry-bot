@@ -12,3 +12,7 @@ MOBILE_APP_SCHEME = "botcherry"
 # Secrets: set locally in `.dev.vars` and in production via:
 #   wrangler secret put BETTER_AUTH_SECRET
 #   wrangler secret put DATABASE_URL
+
+[observability.logs]
+enabled = true
+invocation_logs = true

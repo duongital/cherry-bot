@@ -1,5 +1,6 @@
 import type { MiddlewareHandler } from "hono";
 import { getAuth } from "../auth";
+import { logWarn } from "./logger";
 import type { AppEnv } from "../types";
 
 /**
@@ -12,6 +13,11 @@ export const requireSession: MiddlewareHandler<AppEnv> = async (c, next) => {
   });
 
   if (!session) {
+    logWarn("auth.unauthorized", {
+      requestId: c.get("requestId"),
+      method: c.req.method,
+      path: c.req.path,
+    });
     return c.json(
       { error: { code: "UNAUTHORIZED", message: "Sign in required" } },
       401,

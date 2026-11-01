@@ -15,6 +15,7 @@ type AuthSession = NonNullable<
 >;
 
 export interface AppVariables {
+  requestId: string;
   user: AuthSession["user"];
   session: AuthSession["session"];
 }
