@@ -5,8 +5,8 @@ compatibility_flags = ["nodejs_compat"]
 
 # Non-secret vars (safe to commit). Update with your real URLs after deploy.
 [vars]
-BETTER_AUTH_URL = "https://cherry-api.duongital.com"
-CLIENT_URL = "https://cherry.duongital.com"
+BETTER_AUTH_URL = "https://cherry-api.flipbee.app"
+CLIENT_URL = "https://cherry.flipbee.app"
 MOBILE_APP_SCHEME = "botcherry"
 
 # Secrets: set locally in `.dev.vars` and in production via:

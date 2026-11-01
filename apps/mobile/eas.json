@@ -8,21 +8,21 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://cherry-api.duongital.com",
+        "EXPO_PUBLIC_API_URL": "https://cherry-api.flipbee.app",
         "EXPO_PUBLIC_APP_SCHEME": "botcherry"
       }
     },
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://cherry-api.duongital.com",
+        "EXPO_PUBLIC_API_URL": "https://cherry-api.flipbee.app",
         "EXPO_PUBLIC_APP_SCHEME": "botcherry"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://cherry-api.duongital.com",
+        "EXPO_PUBLIC_API_URL": "https://cherry-api.flipbee.app",
         "EXPO_PUBLIC_APP_SCHEME": "botcherry"
       }
     }

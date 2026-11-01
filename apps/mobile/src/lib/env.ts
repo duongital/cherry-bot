@@ -4,7 +4,7 @@ const configuredApiUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
 // still use the Worker directly when no .env.local is present.
 const defaultApiUrl = __DEV__
   ? "http://localhost:8787"
-  : "https://cherry-api.duongital.com";
+  : "https://cherry-api.flipbee.app";
 
 export const API_URL = (configuredApiUrl || defaultApiUrl).replace(
   /\/$/,

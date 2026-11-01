@@ -359,8 +359,8 @@ Add `MOBILE_APP_SCHEME` to `AuthEnv`, `Bindings`, `.dev.vars.example`, and
 
 ```toml
 [vars]
-BETTER_AUTH_URL = "https://cherry-api.duongital.com"
-CLIENT_URL = "https://cherry.duongital.com"
+BETTER_AUTH_URL = "https://cherry-api.flipbee.app"
+CLIENT_URL = "https://cherry.flipbee.app"
 MOBILE_APP_SCHEME = "botcherry"
 ```
 

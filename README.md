@@ -209,7 +209,7 @@ npx eas-cli@latest build --profile preview --platform android
 
 The `development`, `preview`, and `production` profiles in
 `apps/mobile/eas.json` set `EXPO_PUBLIC_API_URL` to the deployed Worker
-(`https://cherry-api.duongital.com`), so cloud-built APKs never fall back to
+(`https://cherry-api.flipbee.app`), so cloud-built APKs never fall back to
 localhost. Local development can override it in `apps/mobile/.env.local`. CI in
 `.github/workflows/mobile.yml` runs the mobile typecheck and `expo-doctor` on
 changes under `apps/mobile/`.
