@@ -101,9 +101,13 @@ production with `wrangler secret put`:
 
 ### Client (`apps/client`)
 
-| Var                      | Description                        |
-| ------------------------ | ---------------------------------- |
-| `VITE_BETTER_AUTH_URL`   | URL of the server Worker           |
+| Var                      | Description                                      |
+| ------------------------ | ------------------------------------------------ |
+| `VITE_BETTER_AUTH_URL`   | Local override for the server Worker URL only    |
+
+Production builds do not read this variable. The client deploy workflow takes
+`BETTER_AUTH_URL` from `apps/server/wrangler.toml` so the web app and Worker
+can never drift onto different hosts.
 
 ### Mobile (`apps/mobile`)
 
@@ -221,13 +225,17 @@ Pushing to `main` with changes under `apps/client/` runs
 `apps/client/dist` with `wrangler pages deploy`. It can also be run manually
 from the **Actions** tab.
 
-Add these repository **variables** (not secrets) in
+Add this repository **variable** (not a secret) in
 **Settings -> Secrets and variables -> Actions -> Variables**:
 
-| Variable                        | Value                                                   |
-| ------------------------------- | ------------------------------------------------------- |
-| `CLOUDFLARE_PAGES_PROJECT_NAME` | Your Pages project name, e.g. `bot-cherry-client`        |
-| `VITE_BETTER_AUTH_URL`          | Deployed Worker URL, e.g. `https://bot-cherry-server.xxx.workers.dev` |
+| Variable                        | Value                                            |
+| ------------------------------- | ------------------------------------------------ |
+| `CLOUDFLARE_PAGES_PROJECT_NAME` | Your Pages project name, e.g. `bot-cherry-client` |
+
+The workflow reads the API URL from `BETTER_AUTH_URL` in
+`apps/server/wrangler.toml`, so no separate `VITE_BETTER_AUTH_URL` repository
+variable is needed. Local development can still override the URL in
+`apps/client/.env`.
 
 The `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets are the same
 ones used by the server workflow. The token also needs the

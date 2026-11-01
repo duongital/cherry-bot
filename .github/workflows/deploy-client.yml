@@ -42,15 +42,19 @@ jobs:
 
       - name: Build client
         working-directory: apps/client
-        env:
-          VITE_BETTER_AUTH_URL: ${{ vars.VITE_BETTER_AUTH_URL }}
         run: |
           set -euo pipefail
 
-          if [ -z "${VITE_BETTER_AUTH_URL:-}" ]; then
-            echo "::error::Missing repository variable: VITE_BETTER_AUTH_URL"
+          # Keep the client pointed at the same API as the Worker. Using
+          # wrangler.toml as the single source of truth prevents a stale
+          # repository variable from shipping a build with the wrong host.
+          VITE_BETTER_AUTH_URL="$(sed -n 's/^BETTER_AUTH_URL[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' ../server/wrangler.toml | head -n 1)"
+          if [ -z "$VITE_BETTER_AUTH_URL" ]; then
+            echo "::error::Could not read BETTER_AUTH_URL from apps/server/wrangler.toml"
             exit 1
           fi
+          export VITE_BETTER_AUTH_URL
+          echo "Building client with API URL: $VITE_BETTER_AUTH_URL"
 
           pnpm build
 
