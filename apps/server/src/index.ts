@@ -2,6 +2,7 @@ import { Hono, type Context } from "hono";
 import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { swaggerUI } from "@hono/swagger-ui";
+import { routePath } from "hono/route";
 import { getAuth } from "./auth";
 import { openApiDocument } from "./openapi";
 import {
@@ -11,6 +12,13 @@ import {
   serializeError,
 } from "./lib/logger";
 import { requireSession } from "./lib/session";
+import {
+  getTraceIds,
+  recordRootException,
+  setRootSpanAttributes,
+  setRootSpanName,
+  setRootSpanStatus,
+} from "./lib/tracing";
 import itemsRoutes from "./routes/items";
 import tagsRoutes from "./routes/tags";
 import healthRoutes from "./routes/health";
@@ -18,6 +26,19 @@ import type { AppEnv } from "./types";
 
 const app = new Hono<AppEnv>();
 const REQUEST_ID_HEADER = "x-request-id";
+
+/**
+ * Remove high-cardinality path params so span names stay grouped in the trace
+ * UI (for example `GET /api/items/:id` instead of one name per item id).
+ *
+ * `c.req.routePath` inside a `*` middleware is the middleware's own path (`*`),
+ * so use the last matched route (index -1) to get the actual handler. Falls back
+ * to the concrete path for unmatched requests (404).
+ */
+function routeName(c: Context<AppEnv>): string {
+  const matched = routePath(c, -1);
+  return matched && matched !== "*" && matched !== "/*" ? matched : c.req.path;
+}
 
 // Log one structured line per request. This runs before any other middleware so
 // every response, including CORS rejections and unhandled errors, is covered.
@@ -43,8 +64,29 @@ app.use("*", async (c, next) => {
     }
 
     const user = c.get("user");
+    const route = routeName(c);
+
+    // Native Cloudflare tracing owns the invocation root span (and its export to
+    // OTLP destinations). Decorate it here, after routing has resolved; the
+    // runtime ends it when the handler returns.
+    setRootSpanName(`${c.req.method} ${route}`);
+    setRootSpanAttributes({
+      "http.request.method": c.req.method,
+      "http.route": route,
+      "http.response.status_code": status,
+      "url.path": c.req.path,
+      "url.scheme": new URL(c.req.url).protocol.replace(":", ""),
+      "server.address": new URL(c.req.url).host,
+      "request.id": requestId,
+      "cloudflare.ray_id": c.req.header("cf-ray"),
+      ...(user ? { "user.id": user.id } : {}),
+    });
+    // 4xx is a client problem and stays unset, per OTel HTTP conventions.
+    setRootSpanStatus(status >= 500 ? "error" : status < 400 ? "ok" : "unset");
+
     const fields = {
       requestId,
+      ...(getTraceIds() ?? {}),
       method: c.req.method,
       path: c.req.path,
       status,
@@ -70,6 +112,8 @@ app.onError((error, c) => {
     path: c.req.path,
     error: serializeError(error),
   };
+
+  recordRootException(error);
 
   if (error instanceof HTTPException) {
     logWarn("request.http_exception", { ...fields, status: error.status });

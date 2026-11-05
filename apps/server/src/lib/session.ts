@@ -1,6 +1,7 @@
 import type { MiddlewareHandler } from "hono";
 import { getAuth } from "../auth";
 import { logWarn } from "./logger";
+import { withSpan } from "./tracing";
 import type { AppEnv } from "../types";
 
 /**
@@ -8,8 +9,15 @@ import type { AppEnv } from "../types";
  * stored on the context and never trust one supplied by the client.
  */
 export const requireSession: MiddlewareHandler<AppEnv> = async (c, next) => {
-  const session = await getAuth(c.env).api.getSession({
-    headers: c.req.raw.headers,
+  const session = await withSpan("auth.get_session", async (span) => {
+    const result = await getAuth(c.env).api.getSession({
+      headers: c.req.raw.headers,
+    });
+    span.setAttribute(
+      "auth.result",
+      result ? "authenticated" : "unauthenticated",
+    );
+    return result;
   });
 
   if (!session) {

@@ -16,3 +16,22 @@ MOBILE_APP_SCHEME = "botcherry"
 [observability.logs]
 enabled = true
 invocation_logs = true
+
+# --- Tracing ---------------------------------------------------------------
+# Uses Cloudflare's native Workers tracing. The runtime creates the request and
+# platform spans (fetch/KV/D1) and exports them over OTLP/HTTP to the destinations
+# named here.
+#
+# The destination "bot-cherry-traces" must exist in the Cloudflare dashboard:
+#   Observability > Destinations > Add destination
+#     type:      Traces
+#     OTLP URL:  https://trace.duongital.com/insert/opentelemetry/v1/traces
+#     headers:   (optional collector auth)
+#
+# `persist = false` keeps traces out of Cloudflare storage and sends them only
+# to the destination (avoids future Cloudflare ingestion/storage billing).
+[observability.traces]
+enabled = true
+destinations = ["bot-cherry-traces"]
+head_sampling_rate = 1
+persist = false
