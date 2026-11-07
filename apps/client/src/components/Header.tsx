@@ -30,16 +30,61 @@ function CherryIcon({ className }: { className?: string }) {
 }
 
 const apps = [
-  { name: "Health", to: "/health" },
-  { name: "Reponses", to: "/responses" },
+  { name: "Cherry Health", to: "/health" },
+  { name: "Cherry Responses", to: "/responses" },
 ] as const;
+
+/**
+ * Round profile picture. Google accounts come with `user.image`; password
+ * accounts have none, so fall back to the initial of the display name.
+ * `referrerPolicy="no-referrer"` keeps Google's CDN from rejecting the image
+ * when the page is served from a different origin, and a load error degrades
+ * to the initials instead of a broken-image icon.
+ */
+function Avatar({
+  name,
+  image,
+  className = "size-7",
+}: {
+  name: string;
+  image?: string | null;
+  className?: string;
+}) {
+  const [failed, setFailed] = useState(false);
+  const showImage = Boolean(image) && !failed;
+  const initial = (name.trim()[0] ?? "?").toUpperCase();
+
+  if (showImage) {
+    return (
+      <img
+        src={image ?? undefined}
+        alt=""
+        aria-hidden="true"
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(true)}
+        className={`${className} shrink-0 rounded-full border border-base-300 object-cover`}
+      />
+    );
+  }
+
+  return (
+    <span
+      aria-hidden="true"
+      className={`${className} flex shrink-0 items-center justify-center rounded-full bg-base-200 text-xs font-semibold text-base-content/70`}
+    >
+      {initial}
+    </span>
+  );
+}
 
 function UserMenu({
   userName,
+  userImage,
   signingOut,
   onSignOut,
 }: {
   userName: string;
+  userImage?: string | null;
   signingOut: boolean;
   onSignOut: () => void;
 }) {
@@ -76,8 +121,9 @@ function UserMenu({
         aria-expanded={open}
         aria-label={`Account menu for ${userName}`}
         onClick={() => setOpen((value) => !value)}
-        className="flex cursor-pointer items-center gap-2 rounded-full border border-base-300 bg-base-100 px-3 py-1.5 text-sm font-medium text-base-content/70 shadow-sm transition-colors hover:bg-base-200 hover:text-base-content focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        className="flex cursor-pointer items-center gap-2 rounded-full border border-base-300 bg-base-100 py-1 pl-1 pr-3 text-sm font-medium text-base-content/70 shadow-sm transition-colors hover:bg-base-200 hover:text-base-content focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       >
+        <Avatar name={userName} image={userImage} className="size-7" />
         <span className="max-w-40 truncate">Hi, {userName}</span>
         <svg
           viewBox="0 0 20 20"
@@ -126,6 +172,7 @@ export default function Header() {
   const [signingOut, setSigningOut] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const userName = session.data?.user.name?.trim();
+  const userImage = session.data?.user.image;
   const activeApp = apps.find(
     (app) =>
       location.pathname === app.to ||
@@ -223,6 +270,7 @@ export default function Header() {
               {userName && (
                 <UserMenu
                   userName={userName}
+                  userImage={userImage}
                   signingOut={signingOut}
                   onSignOut={handleSignOut}
                 />
@@ -310,7 +358,7 @@ export default function Header() {
                       }`
                     }
                   >
-                    Health
+                    Cherry Health
                   </NavLink>
                   <NavLink
                     to="/responses"
@@ -323,7 +371,7 @@ export default function Header() {
                       }`
                     }
                   >
-                    Reponses
+                    Cherry Responses
                   </NavLink>
                 </nav>
               )}
@@ -337,8 +385,9 @@ export default function Header() {
 
               {userName && (
                 <div className="mt-auto rounded-box border border-base-300 bg-base-200/50 p-3">
-                  <p className="truncate text-sm font-medium text-base-content">
-                    Hi, {userName}
+                  <p className="flex items-center gap-2 truncate text-sm font-medium text-base-content">
+                    <Avatar name={userName} image={userImage} className="size-8" />
+                    <span className="truncate">Hi, {userName}</span>
                   </p>
                   <button
                     type="button"

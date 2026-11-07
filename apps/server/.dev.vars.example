@@ -7,6 +7,11 @@ BETTER_AUTH_URL=http://localhost:8787
 CLIENT_URL=http://localhost:5173
 MOBILE_APP_SCHEME=botcherry
 
+# Google OAuth (Cloudflare Console > Credentials > OAuth client ID, type Web).
+# Production: wrangler secret put GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
 DEEPSEEK_API_KEY=
 # optional: override model (default: deepseek-v4-flash)
 HEALTH_AGENT_MODEL=deepseek-v4-flash

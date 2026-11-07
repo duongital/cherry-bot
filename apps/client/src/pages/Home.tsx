@@ -56,8 +56,8 @@ export default function Home() {
         </h1>
         <p className="home-hero-text">
           cherry-bot is a small, private space with a soft spot for cherries.
-          Log how you feel in Health, keep the answers worth remembering in
-          Responses, and enjoy a few cherry facts along the way.
+          Log how you feel in Cherry Health, keep the answers worth remembering
+          in Cherry Responses, and enjoy a few cherry facts along the way.
         </p>
         <div className="home-hero-actions">
           {session.data ? (
@@ -89,7 +89,7 @@ export default function Home() {
               🌿
             </span>
             <span className="app-card-body">
-              <span className="app-card-title">Health</span>
+              <span className="app-card-title">Cherry Health</span>
               <span className="app-card-description">
                 Describe how you feel, confirm a symptom checklist, and track
                 patterns over time.
@@ -105,7 +105,7 @@ export default function Home() {
               💬
             </span>
             <span className="app-card-body">
-              <span className="app-card-title">Responses</span>
+              <span className="app-card-title">Cherry Responses</span>
               <span className="app-card-description">
                 Save useful AI responses, organize them with tags, and keep
                 notes alongside them.
@@ -123,10 +123,12 @@ export default function Home() {
         <div className="facts-grid">
           {facts.map((fact) => (
             <article key={fact.title} className="fact-card">
-              <span className="fact-emoji" aria-hidden="true">
-                {fact.emoji}
-              </span>
-              <h3>{fact.title}</h3>
+              <h3>
+                <span className="fact-emoji" aria-hidden="true">
+                  {fact.emoji}
+                </span>
+                {fact.title}
+              </h3>
               <p>{fact.body}</p>
             </article>
           ))}

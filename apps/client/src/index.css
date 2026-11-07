@@ -168,8 +168,7 @@ a {
   margin-bottom: 1.5rem;
 }
 
-.apps-heading h2,
-.facts h2 {
+.apps-heading h2 {
   margin: 0;
   font-size: 1.5rem;
   letter-spacing: -0.02em;
@@ -256,42 +255,58 @@ a {
   transform: translateX(3px);
 }
 
+/* Cherry facts — intentionally plain: no cards, borders or backgrounds, so
+   the section reads as quiet footnote text instead of competing with the app
+   cards above it. */
+
+.facts {
+  margin-top: 3.5rem;
+  max-width: 46rem;
+}
+
 .facts h2 {
-  margin: 0 0 1.5rem;
-  font-size: 1.5rem;
-  letter-spacing: -0.02em;
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--muted);
+  text-transform: uppercase;
 }
 
 .facts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.75rem 2rem;
 }
 
 .fact-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 1rem;
-  padding: 1.25rem;
-  backdrop-filter: blur(12px);
-  transition:
-    background-color 180ms ease,
-    border-color 180ms ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  backdrop-filter: none;
 }
 
 .fact-emoji {
-  font-size: 1.5rem;
+  font-size: 0.95rem;
+  margin-right: 0.35rem;
 }
 
 .fact-card h3 {
-  margin: 0.75rem 0 0.5rem;
-  font-size: 1rem;
+  display: inline;
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
 }
 
 .fact-card p {
   margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.55;
+  font-size: 0.875rem;
+  line-height: 1.6;
   color: var(--muted);
 }
 
@@ -367,6 +382,24 @@ input:focus {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
   border-color: var(--accent);
+}
+
+.auth-divider {
+  margin: 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
 }
 
 .switch-mode {

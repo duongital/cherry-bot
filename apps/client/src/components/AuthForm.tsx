@@ -15,6 +15,24 @@ export default function AuthForm({ mode }: { mode: Mode }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  async function handleGoogle() {
+    setError(null);
+    setGoogleLoading(true);
+    try {
+      // Absolute URL so better-auth returns the browser to the web app after
+      // the Google callback (the server must have it in `trustedOrigins`).
+      const res = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: `${window.location.origin}${redirectTo}`,
+      });
+      if (res.error) throw new Error(res.error.message ?? "Google sign in failed");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+      setGoogleLoading(false);
+    }
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -55,6 +73,17 @@ export default function AuthForm({ mode }: { mode: Mode }) {
           ? "Sign in to keep chatting with cherry-bot."
           : "One account is all you need to get started."}
       </p>
+
+      <button
+        type="button"
+        className="app-btn app-btn-ghost"
+        onClick={handleGoogle}
+        disabled={loading || googleLoading}
+      >
+        {googleLoading ? "Redirecting…" : "Continue with Google"}
+      </button>
+
+      <p className="auth-divider">or use your email</p>
 
       {mode === "signup" && (
         <label>

@@ -6,6 +6,8 @@ export interface Bindings {
   BETTER_AUTH_URL: string;
   CLIENT_URL: string;
   MOBILE_APP_SCHEME?: string;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
   DEEPSEEK_API_KEY: string;
   HEALTH_AGENT_MODEL?: string;
 }
