@@ -7,7 +7,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "deploy": "wrangler pages deploy dist"
+    "deploy": "wrangler pages deploy dist --project-name bot-cherry-client --branch main"
   },
   "dependencies": {
     "better-auth": "^1.7.12",
@@ -26,6 +26,6 @@
     "tailwindcss": "^4.3.3",
     "typescript": "^5.7.3",
     "vite": "^6.1.0",
-    "wrangler": "^3.109.1"
+    "wrangler": "^4.158.0"
   }
 }

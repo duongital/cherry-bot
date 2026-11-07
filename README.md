@@ -91,6 +91,8 @@ production with `wrangler secret put`:
 | ------------------- | -------------------------------------------------- |
 | `DATABASE_URL`      | Neon PostgreSQL connection string (HTTP pooler)     |
 | `BETTER_AUTH_SECRET`| Long random string used to sign sessions            |
+| `DEEPSEEK_API_KEY`  | DeepSeek API key used by the health agent           |
+| `HEALTH_AGENT_MODEL`| Optional model override (default `deepseek-v4-flash`) |
 | `BETTER_AUTH_URL`   | Public URL of the Worker (http://localhost:8787 locally) |
 | `CLIENT_URL`        | Origin of the React app (http://localhost:5173 locally) |
 | `MOBILE_APP_SCHEME` | Expo deep-link scheme, `botcherry` (non-secret, in `wrangler.toml`) |
@@ -105,7 +107,7 @@ production with `wrangler secret put`:
 | ------------------------ | ------------------------------------------------ |
 | `VITE_BETTER_AUTH_URL`   | Local override for the server Worker URL only    |
 
-Production builds do not read this variable. The client deploy workflow takes
+Production builds do not read this variable. `pnpm deploy:client` takes
 `BETTER_AUTH_URL` from `apps/server/wrangler.toml` so the web app and Worker
 can never drift onto different hosts.
 
@@ -170,33 +172,37 @@ The saved responses feature uses four tables:
 
 ## Deploy
 
-### Server -> Cloudflare Worker (GitHub Actions)
+Deploys run from your machine with the Wrangler CLI; there is no deployment
+workflow in CI. Log in once with `wrangler login` (or export
+`CLOUDFLARE_API_TOKEN`); runtime secrets already stored on the Worker do not
+need to be present locally at deploy time.
 
-Pushing to `main` with changes under `apps/server/` runs
-`.github/workflows/deploy-server.yml`, which typechecks the Worker, syncs its
-runtime secrets, and runs `wrangler deploy`. You can also trigger it manually
-from the **Actions** tab (`workflow_dispatch`).
+```bash
+pnpm deploy            # server (Worker) then client (Pages)
+pnpm deploy:server     # typecheck + wrangler deploy
+pnpm deploy:client     # build + wrangler pages deploy
+```
 
-Add these repository secrets in GitHub:
+### Server -> Cloudflare Worker
 
-> **Settings -> Secrets and variables -> Actions -> New repository secret**
+`pnpm deploy:server` runs the server typecheck and then `wrangler deploy` from
+`apps/server`. Non-secret vars (`BETTER_AUTH_URL`, `CLIENT_URL`,
+`MOBILE_APP_SCHEME`) come from `apps/server/wrangler.toml` on every deploy.
 
-| Secret                  | Where to get it                                                        |
-| ----------------------- | ---------------------------------------------------------------------- |
-| `CLOUDFLARE_API_TOKEN`  | Cloudflare dashboard -> My Profile -> API Tokens -> *Edit Cloudflare Workers* template |
-| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare dashboard -> Workers & Pages -> Account ID (right sidebar)   |
-| `DATABASE_URL`          | Same Neon pooler connection string used in `apps/server/.dev.vars`      |
-| `BETTER_AUTH_SECRET`    | Long random string (e.g. `openssl rand -base64 32`)                     |
+Runtime secrets live on Cloudflare and persist across deploys; set them once
+(and again whenever a value rotates):
 
-The workflow sets `DATABASE_URL` and `BETTER_AUTH_SECRET` on the Worker with
-`wrangler secret put` before every deploy, so Cloudflare and GitHub stay in
-sync. `BETTER_AUTH_URL` and `CLIENT_URL` are non-secret vars: update them in
-`apps/server/wrangler.toml` to your deployed URLs and push.
+```bash
+cd apps/server
+pnpm exec wrangler secret put DATABASE_URL
+pnpm exec wrangler secret put BETTER_AUTH_SECRET
+pnpm exec wrangler secret put DEEPSEEK_API_KEY
+pnpm exec wrangler secret list   # verify what is currently set
+```
 
-> Alternatively, set the runtime secrets on Cloudflare once with
-> `wrangler secret put` and remove the sync lines from the workflow. The
-> `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` secrets are still required by
-> CI.
+Because secrets are stored on the Worker, a deploy does not need them exported
+in your shell. `HEALTH_AGENT_MODEL` is optional and defaults to
+`deepseek-v4-flash` when unset.
 
 ### Mobile -> EAS / native builds
 
@@ -218,36 +224,24 @@ localhost. Local development can override it in `apps/mobile/.env.local`. CI in
 `.github/workflows/mobile.yml` runs the mobile typecheck and `expo-doctor` on
 changes under `apps/mobile/`.
 
-### Client -> Cloudflare Pages (GitHub Actions)
+### Client -> Cloudflare Pages
 
-Pushing to `main` with changes under `apps/client/` runs
-`.github/workflows/deploy-client.yml`, which builds the React app and uploads
-`apps/client/dist` with `wrangler pages deploy`. It can also be run manually
-from the **Actions** tab.
+`pnpm deploy:client` builds the app with `VITE_BETTER_AUTH_URL` read from
+`BETTER_AUTH_URL` in `apps/server/wrangler.toml`, then uploads `apps/client/dist`
+to the `bot-cherry-client` Pages project (`main` branch). Local development can
+still override the URL in `apps/client/.env`.
 
-Add this repository **variable** (not a secret) in
-**Settings -> Secrets and variables -> Actions -> Variables**:
-
-| Variable                        | Value                                            |
-| ------------------------------- | ------------------------------------------------ |
-| `CLOUDFLARE_PAGES_PROJECT_NAME` | Your Pages project name, e.g. `bot-cherry-client` |
-
-The workflow reads the API URL from `BETTER_AUTH_URL` in
-`apps/server/wrangler.toml`, so no separate `VITE_BETTER_AUTH_URL` repository
-variable is needed. Local development can still override the URL in
-`apps/client/.env`.
-
-The `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets are the same
-ones used by the server workflow. The token also needs the
-**Cloudflare Pages: Edit** permission. The workflow creates the Pages project
-automatically if it does not exist yet (you can also create it in the dashboard,
-or with `pnpm exec wrangler pages project create bot-cherry-client --production-branch=main`).
-
-Manual alternative:
+Use a different branch from the CLI with:
 
 ```bash
-cd apps/client
-pnpm exec wrangler pages deploy dist
+pnpm deploy:client --branch <name>
+```
+
+The Pages project and its custom domain already exist in Cloudflare. If you
+ever need to recreate it:
+
+```bash
+pnpm --filter @bot-cherry/client exec wrangler pages project create bot-cherry-client --production-branch=main
 ```
 
 > **Cross-site cookies:** in production the Worker (`*.workers.dev`) and Pages

@@ -17,6 +17,9 @@ pnpm dev                 # run client + server
 pnpm dev:mobile          # run the Expo dev server
 pnpm typecheck           # typecheck all packages
 pnpm build               # build all packages
+pnpm deploy              # deploy Worker + Pages via Wrangler CLI
+pnpm deploy:server       # typecheck + wrangler deploy
+pnpm deploy:client       # build + wrangler pages deploy
 pnpm --filter @bot-cherry/client typecheck
 pnpm --filter @bot-cherry/server typecheck
 pnpm --filter @bot-cherry/mobile typecheck
@@ -24,6 +27,15 @@ pnpm --filter @bot-cherry/server db:generate
 pnpm --filter @bot-cherry/server db:push
 pnpm mobile:doctor       # expo-doctor
 ```
+
+## Deployment
+
+Deploys happen locally through the Wrangler CLI; there are no deploy
+workflows under `.github/workflows`. Non-secret Worker vars live in
+`apps/server/wrangler.toml`; `DATABASE_URL`, `BETTER_AUTH_SECRET`, and
+`DEEPSEEK_API_KEY` are stored as Worker secrets (`wrangler secret list`).
+`pnpm deploy:client` reads `BETTER_AUTH_URL` from `apps/server/wrangler.toml`,
+so keep that value authoritative.
 
 ## Database migrations
 
