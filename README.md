@@ -228,7 +228,7 @@ changes under `apps/mobile/`.
 
 `pnpm deploy:client` builds the app with `VITE_BETTER_AUTH_URL` read from
 `BETTER_AUTH_URL` in `apps/server/wrangler.toml`, then uploads `apps/client/dist`
-to the `bot-cherry-client` Pages project (`main` branch). Local development can
+to the `cherry-client` Pages project (`main` branch). Local development can
 still override the URL in `apps/client/.env`.
 
 Use a different branch from the CLI with:
@@ -241,7 +241,7 @@ The Pages project and its custom domain already exist in Cloudflare. If you
 ever need to recreate it:
 
 ```bash
-pnpm --filter @bot-cherry/client exec wrangler pages project create bot-cherry-client --production-branch=main
+pnpm --filter @bot-cherry/client exec wrangler pages project create cherry-client --production-branch=main
 ```
 
 > **Cross-site cookies:** in production the Worker (`*.workers.dev`) and Pages

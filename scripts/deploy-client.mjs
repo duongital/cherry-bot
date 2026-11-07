@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const clientDir = join(root, "apps/client");
-const PAGES_PROJECT = "bot-cherry-client";
+const PAGES_PROJECT = "cherry-client";
 
 const toml = readFileSync(join(root, "apps/server/wrangler.toml"), "utf8");
 const match = toml.match(/^\s*BETTER_AUTH_URL\s*=\s*"([^"]+)"/m);
