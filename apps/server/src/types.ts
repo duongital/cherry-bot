@@ -5,6 +5,7 @@ export interface Bindings {
   BETTER_AUTH_SECRET: string;
   BETTER_AUTH_URL: string;
   CLIENT_URL: string;
+  HOSTNAME?: string;
   MOBILE_APP_SCHEME?: string;
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;

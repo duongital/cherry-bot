@@ -8,6 +8,7 @@ compatibility_flags = ["nodejs_compat"]
 BETTER_AUTH_URL = "https://cherry-api.flipbee.app"
 CLIENT_URL = "https://cherry.flipbee.app"
 MOBILE_APP_SCHEME = "botcherry"
+HOSTNAME = "cherry-api"
 
 # Secrets: set locally in `.dev.vars` and in production via:
 #   wrangler secret put BETTER_AUTH_SECRET

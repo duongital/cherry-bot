@@ -6,6 +6,7 @@ import { routePath } from "hono/route";
 import { getAuth } from "./auth";
 import { openApiDocument } from "./openapi";
 import {
+  configureLogging,
   logError,
   logInfo,
   logWarn,
@@ -43,6 +44,11 @@ function routeName(c: Context<AppEnv>): string {
 // Log one structured line per request. This runs before any other middleware so
 // every response, including CORS rejections and unhandled errors, is covered.
 app.use("*", async (c, next) => {
+  // Configure the standard log collector before any handler can log.
+  configureLogging({
+    host: c.env.HOSTNAME ?? new URL(c.req.url).host,
+  });
+
   const startedAt = Date.now();
   const requestId =
     c.req.header("cf-ray") ??
